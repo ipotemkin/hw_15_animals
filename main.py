@@ -83,14 +83,25 @@ from animals
 create_table_breeds = '''
 create table breeds (
     id integer primary key autoincrement,
-    breed varchar(40)
+    breed varchar(30)
 )
 '''
 
 fill_in_breeds = '''
 insert into breeds (breed)
-select distinct breed
-from animals
+    select distinct breed
+    from (
+    select
+        case when instr(breed, '/')=0 then trim(breed)
+        else trim(substr(breed, 1, instr(breed, '/')-1)) end breed
+    from animals
+    union all
+    select
+        case when instr(breed, '/')=0 then null
+        else trim(substr(breed, instr(breed, '/')+1)) end breed
+    from animals)
+    where breed is not null
+    order by 1
 '''
 
 
@@ -281,6 +292,7 @@ from (select distinct color1 color from animals
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
+    # run_plain_sql('drop table breeds')
     # run_plain_sql(create_table_breeds)
     # run_plain_sql(fill_in_breeds)
 
@@ -307,8 +319,22 @@ if __name__ == '__main__':
     # order by color
     # ''')
 
-    # results = run_sql(sql7)
     results = run_sql('select * from breeds')
+    # results2 = run_sql('''
+    # select length(distinct breed)
+    # from (
+    # select
+    #     case when instr(breed, '/')=0 then trim(breed)
+    #     else trim(substr(breed, 1, instr(breed, '/')-1)) end breed
+    # from breeds
+    # union all
+    # select
+    #     case when instr(breed, '/')=0 then null
+    #     else trim(substr(breed, instr(breed, '/')+1)) end breed
+    # from breeds)
+    # where breed is not null
+    # order by 1 desc
+    # ''')
 
     print(results)
     # print(results2)
