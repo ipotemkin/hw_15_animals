@@ -216,13 +216,13 @@ select
     , c.id id3
     , cc.id id4
 from animals a
-    join outcome_subtypes o
+    left join outcome_subtypes o
         using (outcome_subtype)
-    join outcome_types ot
+    left join outcome_types ot
         using (outcome_type)
-    join colors c
+    left join colors c
         on a.color1 = c.color
-    join colors cc
+    left join colors cc
         on a.color2 = cc.color
 '''
 
@@ -281,18 +281,19 @@ from (select distinct color1 color from animals
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    # run_plain_sql('drop table animals_OPT')
-
     # run_plain_sql(create_table_breeds)
     # run_plain_sql(fill_in_breeds)
 
+    # run_plain_sql('drop table animals_OPT')
     # run_plain_sql(create_table_animals)
     # run_plain_sql(transfer_data)
     # run_plain_sql('alter table animals_OPT drop column outcome_subtype')
     # run_plain_sql('alter table animals_OPT drop column outcome_type')
     # run_plain_sql('alter table animals_OPT drop column color1')
     # run_plain_sql('alter table animals_OPT drop column color2')
-    results = run_sql('select count(*) from animals')
+    # results = run_sql('select count(*) animals from animals')
+    # results2 = run_sql('select count(*) animals_OPT from animals_OPT')
+    # results3 = run_sql('select * from animals_OPT limit 5')
 
     # run_plain_sql('drop table colors')
     # run_plain_sql(create_table_colors)
@@ -307,9 +308,11 @@ if __name__ == '__main__':
     # ''')
 
     # results = run_sql(sql7)
-    # results = run_sql('select * from animals_OPT limit 5')
+    results = run_sql('select * from breeds')
 
     print(results)
+    # print(results2)
+    # print(results3)
 
 
 
