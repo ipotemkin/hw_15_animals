@@ -14,7 +14,7 @@ def run_sql(sql_):
 def run_plain_sql(sql_):
     with sqlite3.connect('animal.db') as conn:
         cur = conn.cursor()
-        cur.execute(sql_)
+        return cur.execute(sql_).fetchall()
 
 
 create_table_animals = '''
@@ -27,9 +27,64 @@ create table animals_OPT (
     date_of_birth date,
     outcome_subtype varchar(20),
     outcome_type varchar(20),
-    outcome_date date
+    outcome_date date,
+    outcome_subtype_id integer,
+    outcome_type_id integer,
+    breed_id integer,
+    constraint fk_outcome_subtypes
+        foreign key (outcome_subtype_id)
+        references outcome_subtypes(id),
+    constraint fk_outcome_types
+        foreign key (outcome_type_id)
+        references outcome_types(id)        
+    constraint fk_breeds
+        foreign key (breed_id)
+        references breeds(id)        
 )
 '''
+
+
+create_table_outcome_subtypes = '''
+create table outcome_subtypes (
+    id integer primary key autoincrement,
+    outcome_subtype varchar(20)
+)
+'''
+
+fill_in_outcome_subtypes = '''
+insert into outcome_subtypes (outcome_subtype)
+select distinct outcome_subtype
+from animals
+'''
+
+
+create_table_outcome_types = '''
+create table outcome_types (
+    id integer primary key autoincrement,
+    outcome_type varchar(20)
+)
+'''
+
+fill_in_outcome_types = '''
+insert into outcome_types (outcome_type)
+select distinct outcome_type
+from animals
+'''
+
+create_table_breeds = '''
+create table breeds (
+    id integer primary key autoincrement,
+    breed varchar(40)
+)
+'''
+
+fill_in_breeds = '''
+insert into breeds (breed)
+select distinct breed
+from animals
+'''
+
+
 
 sql2 = '''
 insert into animals (animal_type, age_upon_outcome) values
@@ -135,7 +190,7 @@ select * from outcome_type
 
 transfer_data = '''
 insert into animals_OPT (animal_type, name, breed, color, date_of_birth, outcome_subtype, outcome_type,
-    outcome_date)
+    outcome_date, outcome_subtype_id, outcome_type_id)
 
 select 
     animal_type,
@@ -152,8 +207,13 @@ select
     outcome_subtype,
     outcome_type,
     date(outcome_year || '-' || printf('%02d', outcome_month) || '-01') outcome_date
-from animals
-
+    , o.id
+    , ot.id id2
+from animals a
+    join outcome_subtypes o
+        using (outcome_subtype)
+    join outcome_types ot
+        using (outcome_type)
 '''
 
 
@@ -168,14 +228,75 @@ select distinct outcome_subtype
 from animals
 '''
 
+sql_length_of_columns = '''
+select animal_id,
+    name,
+    length(name),
+    length(breed),
+    length(color1),
+    length(date_of_birth)
+from animals
+limit 10
+'''
 
+
+sql_ref = '''
+alter table animals_OPT rename to animals_old
+'''
+
+# add column outcome_subtype_id int
+# add foreign key (outcome_subtype_id) references outcome_subtypes(id)
+
+# pragma foreign_keys = on;
+# drop column outcome_subtype_id
 
 # alter column name nvarchar(20) constraint df_name default 'Noname'
+
+create_table_colors = '''
+create table colors (
+    id integer primary key autoincrement,
+    color varchar(20)
+)
+'''
+
+fill_in_colors = '''
+insert into colors (color)
+select distinct trim(color) color 
+from (select distinct color1 color from animals
+    union all
+    select distinct color2 color from animals)
+'''
+
 
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
+    # run_plain_sql('drop table animals_OPT')
+
+    # run_plain_sql(create_table_breeds)
+    # run_plain_sql(fill_in_breeds)
+
+    # run_plain_sql(create_table_animals)
     # run_plain_sql(transfer_data)
-    # print(run_sql('select * from animals limit 5'))
-    # print(run_sql('select count(*) from animals_OPT'))
-    print(run_sql(sql_outcome_subtypes))
+    # run_plain_sql('alter table animals_OPT drop column outcome_subtype')
+    # run_plain_sql('alter table animals_OPT drop column outcome_type')
+    # results = run_sql('select * from animals_OPT limit 5')
+
+    # run_plain_sql('drop table colors')
+    # run_plain_sql(create_table_colors)
+    # run_plain_sql(fill_in_colors)
+
+    # results = run_sql('select breed, count(*) from animals_OPT group by 1 order by 2 desc')
+    # results = run_sql('''
+    # select count(distinct trim(color)) color from (select distinct color1 color from animals
+    # union all
+    # select distinct color2 color from animals)
+    # order by color
+    # ''')
+
+    results = run_sql('select * from animals_OPT limit 5')
+
+    print(results)
+
+
+
