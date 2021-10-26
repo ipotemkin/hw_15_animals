@@ -22,7 +22,8 @@ create table animals_OPT (
     animal_id integer primary key autoincrement,
     animal_type varchar(10),
     name varchar(20),
-    breed varchar(40),
+    breed1 varchar(30),
+    breed2 varchar(30),    
     color1 varchar(20),
     color2 varchar(20),
     date_of_birth date,
@@ -31,7 +32,8 @@ create table animals_OPT (
     outcome_date date,
     outcome_subtype_id integer,
     outcome_type_id integer,
-    --breed_id integer,
+    breed1_id integer,
+    breed2_id integer,    
     color1_id integer,
     color2_id integer,
     constraint fk_outcome_subtypes
@@ -40,9 +42,12 @@ create table animals_OPT (
     constraint fk_outcome_types
         foreign key (outcome_type_id)
         references outcome_types(id),        
-    --constraint fk_breeds
-    --    foreign key (breed_id)
-    --    references breeds(id)        
+    constraint fk_breeds1
+        foreign key (breed1_id)
+        references breeds(id),        
+    constraint fk_breeds2
+        foreign key (breed2_id)
+        references breeds(id),        
     constraint fk_colors1
         foreign key (color1_id)
         references colors(id),        
@@ -209,13 +214,17 @@ select * from outcome_type
 
 
 transfer_data = '''
-insert into animals_OPT (animal_type, name, breed, color1, color2, date_of_birth, outcome_subtype, outcome_type,
-    outcome_date, outcome_subtype_id, outcome_type_id, color1_id, color2_id)
+insert into animals_OPT (animal_type, name, breed1, breed2, color1, color2, date_of_birth,
+    outcome_subtype, outcome_type, outcome_date, outcome_subtype_id, outcome_type_id, breed1_id,
+    breed2_id, color1_id, color2_id)
 
 select 
     animal_type,
     name,
-    breed,
+    case when instr(a.breed, '/')=0 then trim(a.breed)
+        else substr(a.breed, 1, instr(a.breed, '/')-1) end breed1,
+    case when instr(a.breed, '/')=0 then null
+        else substr(a.breed, instr(a.breed, '/')+1) end breed2,        
     trim(color1),
     trim(color2),    
     date(date_of_birth) date_of_birth,
@@ -224,13 +233,19 @@ select
     date(outcome_year || '-' || printf('%02d', outcome_month) || '-01') outcome_date
     , o.id
     , ot.id id2
-    , c.id id3
-    , cc.id id4
+    , b.id id3
+    , bb.id id4
+    , c.id id5
+    , cc.id id6
 from animals a
     left join outcome_subtypes o
         using (outcome_subtype)
     left join outcome_types ot
         using (outcome_type)
+    left join breeds b
+        on breed1 = b.breed
+    left join breeds bb
+        on breed2 = bb.breed
     left join colors c
         on a.color1 = c.color
     left join colors cc
@@ -303,9 +318,11 @@ if __name__ == '__main__':
     # run_plain_sql('alter table animals_OPT drop column outcome_type')
     # run_plain_sql('alter table animals_OPT drop column color1')
     # run_plain_sql('alter table animals_OPT drop column color2')
-    # results = run_sql('select count(*) animals from animals')
-    # results2 = run_sql('select count(*) animals_OPT from animals_OPT')
-    # results3 = run_sql('select * from animals_OPT limit 5')
+    # run_plain_sql('alter table animals_OPT drop column breed1')
+    # run_plain_sql('alter table animals_OPT drop column breed2')
+    results = run_sql('select count(*) animals from animals')
+    results2 = run_sql('select count(*) animals_OPT from animals_OPT')
+    results3 = run_sql('select * from animals_OPT limit 5')
 
     # run_plain_sql('drop table colors')
     # run_plain_sql(create_table_colors)
@@ -319,7 +336,7 @@ if __name__ == '__main__':
     # order by color
     # ''')
 
-    results = run_sql('select * from breeds')
+    # results = run_sql('select * from breeds')
     # results2 = run_sql('''
     # select length(distinct breed)
     # from (
@@ -337,8 +354,8 @@ if __name__ == '__main__':
     # ''')
 
     print(results)
-    # print(results2)
-    # print(results3)
+    print(results2)
+    print(results3)
 
 
 
