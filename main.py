@@ -23,23 +23,32 @@ create table animals_OPT (
     animal_type varchar(10),
     name varchar(20),
     breed varchar(40),
-    color varchar(30),
+    color1 varchar(20),
+    color2 varchar(20),
     date_of_birth date,
     outcome_subtype varchar(20),
     outcome_type varchar(20),
     outcome_date date,
     outcome_subtype_id integer,
     outcome_type_id integer,
-    breed_id integer,
+    --breed_id integer,
+    color1_id integer,
+    color2_id integer,
     constraint fk_outcome_subtypes
         foreign key (outcome_subtype_id)
         references outcome_subtypes(id),
     constraint fk_outcome_types
         foreign key (outcome_type_id)
-        references outcome_types(id)        
-    constraint fk_breeds
-        foreign key (breed_id)
-        references breeds(id)        
+        references outcome_types(id),        
+    --constraint fk_breeds
+    --    foreign key (breed_id)
+    --    references breeds(id)        
+    constraint fk_colors1
+        foreign key (color1_id)
+        references colors(id),        
+    constraint fk_colors2
+        foreign key (color2_id)
+        references colors(id)        
 )
 '''
 
@@ -189,31 +198,32 @@ select * from outcome_type
 
 
 transfer_data = '''
-insert into animals_OPT (animal_type, name, breed, color, date_of_birth, outcome_subtype, outcome_type,
-    outcome_date, outcome_subtype_id, outcome_type_id)
+insert into animals_OPT (animal_type, name, breed, color1, color2, date_of_birth, outcome_subtype, outcome_type,
+    outcome_date, outcome_subtype_id, outcome_type_id, color1_id, color2_id)
 
 select 
     animal_type,
     name,
     breed,
-    case
-        when color1 is not null and color2 is not null then trim(color1) || ', ' || trim(color2)
-        else
-            (case when color1 is not null then trim(color1)
-            else trim(color2) end)
-        end as color,
-        
+    trim(color1),
+    trim(color2),    
     date(date_of_birth) date_of_birth,
     outcome_subtype,
     outcome_type,
     date(outcome_year || '-' || printf('%02d', outcome_month) || '-01') outcome_date
     , o.id
     , ot.id id2
+    , c.id id3
+    , cc.id id4
 from animals a
     join outcome_subtypes o
         using (outcome_subtype)
     join outcome_types ot
         using (outcome_type)
+    join colors c
+        on a.color1 = c.color
+    join colors cc
+        on a.color2 = cc.color
 '''
 
 
@@ -280,7 +290,9 @@ if __name__ == '__main__':
     # run_plain_sql(transfer_data)
     # run_plain_sql('alter table animals_OPT drop column outcome_subtype')
     # run_plain_sql('alter table animals_OPT drop column outcome_type')
-    # results = run_sql('select * from animals_OPT limit 5')
+    # run_plain_sql('alter table animals_OPT drop column color1')
+    # run_plain_sql('alter table animals_OPT drop column color2')
+    results = run_sql('select count(*) from animals')
 
     # run_plain_sql('drop table colors')
     # run_plain_sql(create_table_colors)
@@ -294,7 +306,8 @@ if __name__ == '__main__':
     # order by color
     # ''')
 
-    results = run_sql('select * from animals_OPT limit 5')
+    # results = run_sql(sql7)
+    # results = run_sql('select * from animals_OPT limit 5')
 
     print(results)
 
