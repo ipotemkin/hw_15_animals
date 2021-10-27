@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Colors</title>
+</head>
+<body>
+    <div align="center">
+    <div style="width: 40%;">
+        <head>
+            <h2>Colors</h2>
+        </head>
+        <section align="left" style="background-color: whitesmoke; border-radius: 15px; padding: 20px; font-family: Arial;">
+            {% for color in colors %}
+            <p>{{ color['Color'] }}</p>
+            {% endfor %}
+        </section>
+    </div>
+    </div>
+</body>
+</html>

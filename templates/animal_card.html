@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Animal card</title>
+</head>
+<body>
+    <div align="center">
+    <div style="width: 40%;">
+        <head>
+            <h2>{{ card['Name'] }}</h2>
+        </head>
+        <section align="left" style="background-color: whitesmoke; border-radius: 15px; padding: 20px; font-family: Arial;">
+            <p>Animal type: {{ card['Animal type'] }}</p>
+            <p>Date of birth: {{ card['Date of birth'] }}</p>
+            <p>Breed: {{ card['Breed 1'] }}{% if card['Breed 2'] %}/{{ card['Breed 2'] }}{% endif %}</p>
+            <p>Color: {{ card['Color 1'] }}{% if card['Color 2'] %}/{{ card['Color 2'] }}</p>{% endif %}
+            <p>Outcome date: {{ card['Outcome date'] }}</p>
+            <p>Outcome subtype: {{ card['Outcome subtype'] }}</p>
+            <p>Outcome type: {{ card['Outcome type'] }}</p>
+        </section>
+    </div>
+    </div>
+</body>
+</html>

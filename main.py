@@ -1,21 +1,4 @@
-import sqlite3
-import prettytable
-
-
-def run_sql(sql_):
-    with sqlite3.connect('animal.db') as conn:
-        cur = conn.cursor()
-        results = cur.execute(sql_)
-        my_table = prettytable.from_db_cursor(results)
-        my_table.max_width = 30
-        return my_table
-
-
-def run_plain_sql(sql_):
-    with sqlite3.connect('animal.db') as conn:
-        cur = conn.cursor()
-        return cur.execute(sql_).fetchall()
-
+from utils import run_sql, run_plain_sql
 
 create_table_animals = '''
 create table animals_OPT (
@@ -57,7 +40,6 @@ create table animals_OPT (
 )
 '''
 
-
 create_table_outcome_subtypes = '''
 create table outcome_subtypes (
     id integer primary key autoincrement,
@@ -69,8 +51,9 @@ fill_in_outcome_subtypes = '''
 insert into outcome_subtypes (outcome_subtype)
 select distinct outcome_subtype
 from animals
+where outcome_subtype is not null
+order by outcome_subtype
 '''
-
 
 create_table_outcome_types = '''
 create table outcome_types (
@@ -83,6 +66,8 @@ fill_in_outcome_types = '''
 insert into outcome_types (outcome_type)
 select distinct outcome_type
 from animals
+where outcome_type is not null
+order by outcome_type
 '''
 
 create_table_breeds = '''
@@ -109,19 +94,15 @@ insert into breeds (breed)
     order by 1
 '''
 
-
-
 sql2 = '''
 insert into animals (animal_type, age_upon_outcome) values
 ('Кошка', 2)
 '''
 
-
 sql3 = '''
 update animals
 set animal_type = 'Кошка' where animal_type = 'Кот'
 '''
-
 
 sql4 = '''
 alter table animals
@@ -142,7 +123,6 @@ where color2 is not null
 order by 3 desc
 limit 10
 '''
-
 
 # shows max length of string fields
 sql7 = '''
@@ -212,7 +192,6 @@ union all
 select * from outcome_type
 '''
 
-
 transfer_data = '''
 insert into animals_OPT (animal_type, name, breed1, breed2, color1, color2, date_of_birth,
     outcome_subtype, outcome_type, outcome_date, outcome_subtype_id, outcome_type_id, breed1_id,
@@ -247,17 +226,15 @@ from animals a
     left join breeds bb
         on breed2 = bb.breed
     left join colors c
-        on a.color1 = c.color
+        on trim(a.color1) = c.color
     left join colors cc
-        on a.color2 = cc.color
+        on trim(a.color2) = cc.color
 '''
-
 
 sql_outcome_types = '''
 select distinct outcome_type
 from animals
 '''
-
 
 sql_outcome_subtypes = '''
 select distinct outcome_subtype
@@ -275,17 +252,14 @@ from animals
 limit 10
 '''
 
-
 sql_ref = '''
 alter table animals_OPT rename to animals_old
 '''
 
 # add column outcome_subtype_id int
 # add foreign key (outcome_subtype_id) references outcome_subtypes(id)
-
 # pragma foreign_keys = on;
 # drop column outcome_subtype_id
-
 # alter column name nvarchar(20) constraint df_name default 'Noname'
 
 create_table_colors = '''
@@ -301,61 +275,65 @@ select distinct trim(color) color
 from (select distinct color1 color from animals
     union all
     select distinct color2 color from animals)
+where color is not null
+order by color
 '''
 
+
+def create_all():
+    run_plain_sql('drop table if exists breeds')
+    run_plain_sql(create_table_breeds)
+    run_plain_sql(fill_in_breeds)
+
+    run_plain_sql('drop table if exists colors')
+    run_plain_sql(create_table_colors)
+    run_plain_sql(fill_in_colors)
+
+    run_plain_sql('drop table if exists outcome_subtypes')
+    run_plain_sql(create_table_outcome_subtypes)
+    run_plain_sql(fill_in_outcome_subtypes)
+
+    run_plain_sql('drop table if exists outcome_types')
+    run_plain_sql(create_table_outcome_types)
+    run_plain_sql(fill_in_outcome_types)
+
+    run_plain_sql('drop table if exists animals_OPT')
+    run_plain_sql(create_table_animals)
+    run_plain_sql(transfer_data)
+    run_plain_sql('alter table animals_OPT drop column outcome_subtype')
+    run_plain_sql('alter table animals_OPT drop column outcome_type')
+    run_plain_sql('alter table animals_OPT drop column color1')
+    run_plain_sql('alter table animals_OPT drop column color2')
+    run_plain_sql('alter table animals_OPT drop column breed1')
+    run_plain_sql('alter table animals_OPT drop column breed2')
 
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    # run_plain_sql('drop table breeds')
-    # run_plain_sql(create_table_breeds)
-    # run_plain_sql(fill_in_breeds)
+    # create_all()
 
-    # run_plain_sql('drop table animals_OPT')
-    # run_plain_sql(create_table_animals)
-    # run_plain_sql(transfer_data)
-    # run_plain_sql('alter table animals_OPT drop column outcome_subtype')
-    # run_plain_sql('alter table animals_OPT drop column outcome_type')
-    # run_plain_sql('alter table animals_OPT drop column color1')
-    # run_plain_sql('alter table animals_OPT drop column color2')
-    # run_plain_sql('alter table animals_OPT drop column breed1')
-    # run_plain_sql('alter table animals_OPT drop column breed2')
     results = run_sql('select count(*) animals from animals')
-    results2 = run_sql('select count(*) animals_OPT from animals_OPT')
-    results3 = run_sql('select * from animals_OPT limit 5')
-
-    # run_plain_sql('drop table colors')
-    # run_plain_sql(create_table_colors)
-    # run_plain_sql(fill_in_colors)
-
-    # results = run_sql('select breed, count(*) from animals_OPT group by 1 order by 2 desc')
-    # results = run_sql('''
-    # select count(distinct trim(color)) color from (select distinct color1 color from animals
-    # union all
-    # select distinct color2 color from animals)
-    # order by color
-    # ''')
-
-    # results = run_sql('select * from breeds')
-    # results2 = run_sql('''
-    # select length(distinct breed)
-    # from (
-    # select
-    #     case when instr(breed, '/')=0 then trim(breed)
-    #     else trim(substr(breed, 1, instr(breed, '/')-1)) end breed
-    # from breeds
-    # union all
-    # select
-    #     case when instr(breed, '/')=0 then null
-    #     else trim(substr(breed, instr(breed, '/')+1)) end breed
-    # from breeds)
-    # where breed is not null
-    # order by 1 desc
-    # ''')
+    results2 = run_sql('select count(*) animals_PRO from animals_OPT')
+    results3 = run_sql('select * from animals limit 12')
+    # results3 = run_sql('select count(*) from outcome_types where outcome_type is null')
 
     print(results)
     print(results2)
     print(results3)
 
+    # tests
 
+    assert run_plain_sql('select count(*) from animals')[0][0] \
+           == run_plain_sql('select count(*) from animals_OPT')[0][0], "Tables not identical"
 
+    assert run_plain_sql('select count(*) from outcome_subtypes where outcome_subtype is null')[0][0] == 0,\
+        "There are null outcome_subtypes"
+
+    assert run_plain_sql('select count(*) from outcome_types where outcome_type is null')[0][0] == 0,\
+        "There are null outcome_types"
+
+    assert run_plain_sql('select count(*) from colors where color is null')[0][0] == 0,\
+        "There are null colors"
+
+    assert run_plain_sql('select count(*) from breeds where breed is null')[0][0] == 0,\
+        "There are null breeds"
