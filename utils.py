@@ -3,13 +3,13 @@ import prettytable
 from errors import ValidationError
 
 
-def run_plain_sql(sql_):
+def run_plain_sql(sql_: str) -> list:
     with sqlite3.connect('animal.db') as conn:
         cur = conn.cursor()
         return cur.execute(sql_).fetchall()
 
 
-def run_sql(sql_):
+def run_sql(sql_: str) -> 'prettytable.prettytable.PrettyTable':
     with sqlite3.connect('animal.db') as conn:
         cur = conn.cursor()
         results = cur.execute(sql_)
@@ -18,7 +18,7 @@ def run_sql(sql_):
         return my_table
 
 
-def make_results(*fields, data: list):
+def make_results(*fields: str, data: list) -> list:
     if len(fields) != len(data[0]):
         raise ValidationError
     results = []

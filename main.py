@@ -252,7 +252,7 @@ from animals
 limit 10
 '''
 
-sql_ref = '''
+sql_rename = '''
 alter table animals_OPT rename to animals_old
 '''
 
@@ -310,21 +310,15 @@ def create_all():
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    # create_all()
+    # create_all()  # creates all tables and transfers all data
 
-    results = run_sql('select count(*) animals from animals')
-    results2 = run_sql('select count(*) animals_PRO from animals_OPT')
-    results3 = run_sql('select * from animals limit 12')
-    # results3 = run_sql('select count(*) from outcome_types where outcome_type is null')
+    print(run_sql('select count(*) animals from animals'))
+    print(run_sql('select count(*) animals_PRO from animals_OPT'))
+    print(run_sql('select * from animals limit 12'))
 
-    print(results)
-    print(results2)
-    print(results3)
-
-    # tests
-
+    # tests -------------
     assert run_plain_sql('select count(*) from animals')[0][0] \
-           == run_plain_sql('select count(*) from animals_OPT')[0][0], "Tables not identical"
+           == run_plain_sql('select count(*) from animals_OPT')[0][0], "Tables contain a different number of lines"
 
     assert run_plain_sql('select count(*) from outcome_subtypes where outcome_subtype is null')[0][0] == 0,\
         "There are null outcome_subtypes"
@@ -337,3 +331,54 @@ if __name__ == '__main__':
 
     assert run_plain_sql('select count(*) from breeds where breed is null')[0][0] == 0,\
         "There are null breeds"
+
+    assert run_plain_sql('''
+    select count(distinct color)
+    from ( 
+        select distinct trim(color1) color
+        from animals
+        where color1 is not null
+        union all
+        select distinct trim(color2) color 
+        from animals
+        where color2 is not null
+    )    
+    ''')[0][0] == run_plain_sql('''
+    select count(color)
+    from colors
+    ''')[0][0], "Number of colors is not equal"
+
+    assert run_plain_sql('''
+    select count(distinct outcome_subtype)
+    from animals 
+    where outcome_subtype is not null
+    ''')[0][0] == run_plain_sql('''
+    select count(outcome_subtype)
+    from outcome_subtypes
+    ''')[0][0], "Number of outcome_subtypes is not equal"
+
+    assert run_plain_sql('''
+    select count(distinct outcome_type)
+    from animals 
+    where outcome_type is not null
+    ''')[0][0] == run_plain_sql('''
+    select count(outcome_type)
+    from outcome_types
+    ''')[0][0], "Number of outcome_types is not equal"
+
+    assert run_plain_sql('''
+    select count(name)
+    from animals
+    ''')[0][0] == run_plain_sql('''
+    select count(name)
+    from animals_OPT
+    ''')[0][0], "Number of names is not equal"
+
+    assert run_plain_sql('''
+    select sum(date(date_of_birth))
+    from animals
+    ''')[0][0] == run_plain_sql('''
+    select sum(date(date_of_birth))
+    from animals_OPT
+    ''')[0][0], "Dates of birth are not equal"
+    # end of tests ------------

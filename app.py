@@ -1,5 +1,4 @@
 from flask import Flask, jsonify, render_template
-import time
 from errors import NotFoundError, BadRequestError, ValidationError
 from utils import run_plain_sql, make_results
 
@@ -96,9 +95,10 @@ def index():
 def shows_card_by_id(uid: int):
     if not (results := run_plain_sql(SQL.format(uid))):
         raise NotFoundError
-    return render_template('animal_card.html', card=make_results('Animal type', 'Name', 'Date of birth',
-                                'Outcome date', 'Breed 1', 'Breed 2', 'Color 1', 'Color 2', 'Outcome subtype',
-                                'Outcome type', data=results)[0])
+    return render_template('animal_card.html',
+                           card=make_results('Animal type', 'Name', 'Date of birth', 'Outcome date', 'Breed 1',
+                                             'Breed 2', 'Color 1', 'Color 2', 'Outcome subtype', 'Outcome type',
+                                             data=results)[0])
 
 
 @app.route('/<int:uid>')
@@ -131,10 +131,16 @@ def shows_colors():
     return render_template('colors.html', colors=make_results('Color', data=results))
 
 
+@app.route('/search/', methods=['GET', 'POST'])
+def search():
+    return render_template('search.html')
+
+
 if __name__ == '__main__':
     app.run()
 
     # DEBUG and PROFILE -----
+    # import time
     # uid = 3
 
     # results = run_sql('''

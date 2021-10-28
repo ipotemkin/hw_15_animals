@@ -1,0 +1,16 @@
+.input_field {
+    background: whitesmoke;
+    border: 0px;
+    border-radius: 15px;
+    height: 40px;
+    width: 100%;
+    font-size: 20px;
+    text-align: center;
+}
+.container {
+    background-color: whitesmoke;
+    border-radius: 15px;
+    padding: 20px;
+    font-family: Arial;
+    text-align: left;
+}
