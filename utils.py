@@ -40,4 +40,17 @@ def get_colors_by_animal_id(uid: int) -> str:
     '''
     result = run_plain_sql(sql_colors_by_animal_id.format(uid))
     colors_lst = [color[0] for color in result]
-    return ', '.join(colors_lst)
+    return '/'.join(colors_lst)
+
+
+def get_breeds_by_animal_id(uid: int) -> str:
+    sql_breeds_by_animal_id = '''
+        select breed
+        from animals_OPT a
+            left join animals_breeds ac using (animal_id)
+            left join breeds b on ac.breed_id = b.id
+        where animal_id = {} and breed is not null     
+    '''
+    result = run_plain_sql(sql_breeds_by_animal_id.format(uid))
+    breeds_lst = [breed[0] for breed in result]
+    return '/'.join(breeds_lst)

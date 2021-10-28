@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, render_template
 from errors import NotFoundError, BadRequestError, ValidationError
-from utils import run_plain_sql, make_results, get_colors_by_animal_id
+from utils import run_plain_sql, make_results, get_colors_by_animal_id, get_breeds_by_animal_id
 
 app = Flask(__name__)
 
@@ -56,14 +56,14 @@ sql3 = '''
 '''
 SQL = '''
     select at.animal_type animal_type, name, date_of_birth, outcome_date,
-        b.breed as breed1, bb.breed as breed2,
+--        b.breed as breed1, bb.breed as breed2,
         --c.color as color1, cc.color as color2,
         o.outcome_subtype, ot.outcome_type
     from animals_OPT a
-        left join breeds b on a.breed1_id = b.id
-        left join breeds bb on a.breed2_id = bb.id
-        left join colors c on a.color1_id = c.id
-        left join colors cc on a.color2_id = cc.id
+--        left join breeds b on a.breed1_id = b.id
+--        left join breeds bb on a.breed2_id = bb.id
+--        left join colors c on a.color1_id = c.id
+--        left join colors cc on a.color2_id = cc.id
         left join outcome_subtypes o on a.outcome_subtype_id = o.id
         left join outcome_types ot on a.outcome_type_id = ot.id
         left join animal_types at on a.animal_type_id = at.id
@@ -96,9 +96,10 @@ def index():
 def shows_card_by_id(uid: int):
     if not (results := run_plain_sql(SQL.format(uid))):
         raise NotFoundError
-    results_with_names = make_results('Animal type', 'Name', 'Date of birth', 'Outcome date', 'Breed 1', 'Breed 2',
-                                'Outcome subtype', 'Outcome type', data=results)
-    results_with_names[0]['Colors'] = get_colors_by_animal_id(uid)
+    results_with_names = make_results('Animal type', 'Name', 'Date of birth', 'Outcome date', 'Outcome subtype',
+                                      'Outcome type', data=results)
+    results_with_names[0]['Color'] = get_colors_by_animal_id(uid)
+    results_with_names[0]['Breed'] = get_breeds_by_animal_id(uid)
     return render_template('animal_card.html', card=results_with_names[0])
 
 
@@ -106,9 +107,10 @@ def shows_card_by_id(uid: int):
 def shows_by_id(uid: int):
     if not (results := run_plain_sql(SQL.format(uid))):
         raise NotFoundError
-    results_with_names = make_results('Animal type', 'Name', 'Date of birth', 'Outcome date', 'Breed 1', 'Breed 2',
-                                'Outcome subtype', 'Outcome type', data=results)
-    results_with_names[0]['Colors'] = get_colors_by_animal_id(uid)
+    results_with_names = make_results('Animal type', 'Name', 'Date of birth', 'Outcome date', 'Outcome subtype',
+                                      'Outcome type', data=results)
+    results_with_names[0]['Color'] = get_colors_by_animal_id(uid)
+    results_with_names[0]['Breed'] = get_breeds_by_animal_id(uid)
     return jsonify(results_with_names[0])
 
 
