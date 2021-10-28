@@ -19,24 +19,13 @@ create table animals_OPT (
     breed2_id integer,    
     color1_id integer,
     color2_id integer,
---    constraint fk_outcome_subtypes
-        foreign key (outcome_subtype_id)
-        references outcome_subtypes(id),
---    constraint fk_outcome_types
-        foreign key (outcome_type_id)
-        references outcome_types(id),        
---    constraint fk_breeds1
-        foreign key (breed1_id)
-        references breeds(id),        
---    constraint fk_breeds2
-        foreign key (breed2_id)
-        references breeds(id),        
---    constraint fk_colors1
-        foreign key (color1_id)
-        references colors(id),        
---    constraint fk_colors2
-        foreign key (color2_id)
-        references colors(id)        
+    animal_type_id integer,
+    foreign key (outcome_subtype_id) references outcome_subtypes(id),
+    foreign key (outcome_type_id) references outcome_types(id),        
+    foreign key (breed1_id) references breeds(id),        
+    foreign key (breed2_id) references breeds(id),        
+    foreign key (color1_id) references colors(id),        
+    foreign key (color2_id) references colors(id)        
 )
 '''
 
@@ -210,10 +199,10 @@ select * from outcome_type
 transfer_data = '''
 insert into animals_OPT (animal_type, name, breed1, breed2, color1, color2, date_of_birth,
     outcome_subtype, outcome_type, outcome_date, outcome_subtype_id, outcome_type_id, breed1_id,
-    breed2_id, color1_id, color2_id)
+    breed2_id, color1_id, color2_id, animal_type_id)
 
 select 
-    animal_type,
+    a.animal_type,
     name,
     case when instr(a.breed, '/')=0 then trim(a.breed)
         else substr(a.breed, 1, instr(a.breed, '/')-1) end breed1,
@@ -231,19 +220,15 @@ select
     , bb.id id4
     , c.id id5
     , cc.id id6
+    , at.id id7
 from animals a
-    left join outcome_subtypes o
-        using (outcome_subtype)
-    left join outcome_types ot
-        using (outcome_type)
-    left join breeds b
-        on breed1 = b.breed
-    left join breeds bb
-        on breed2 = bb.breed
-    left join colors c
-        on trim(a.color1) = c.color
-    left join colors cc
-        on trim(a.color2) = cc.color
+    left join outcome_subtypes o using (outcome_subtype)
+    left join outcome_types ot using (outcome_type)
+    left join breeds b on breed1 = b.breed
+    left join breeds bb on breed2 = bb.breed
+    left join colors c on trim(a.color1) = c.color
+    left join colors cc on trim(a.color2) = cc.color
+    left join animal_types at on a.animal_type = at.animal_type
 '''
 
 sql_outcome_types = '''
@@ -325,6 +310,7 @@ def create_all():
     run_plain_sql('alter table animals_OPT drop column color2')
     run_plain_sql('alter table animals_OPT drop column breed1')
     run_plain_sql('alter table animals_OPT drop column breed2')
+    run_plain_sql('alter table animals_OPT drop column animal_type')
 
 
 # Press the green button in the gutter to run the script.
@@ -332,7 +318,7 @@ if __name__ == '__main__':
     create_all()  # creates all tables and transfers all data
 
     print(run_sql('select count(*) animals from animals'))
-    print(run_sql('select count(*) animals_PRO from animals_OPT'))
+    print(run_sql('select count(*) animals_OPT from animals_OPT'))
     print(run_sql('select * from animals limit 12'))
     print(run_sql('select * from animals_OPT limit 12'))
     # print(run_sql('select * from animal_types'))
