@@ -5,65 +5,14 @@ from utils import run_plain_sql, make_results, get_colors_by_animal_id, get_bree
 app = Flask(__name__)
 
 
-# uid = 5000
-sql = '''
-        select animal_type, name, date_of_birth, outcome_date,
-            b.breed as breed1, bb.breed as breed2,
-            c.color as color1, cc.color as color2,
-            o.outcome_subtype, ot.outcome_type
-        from animals_OPT a
-            left join breeds b on a.breed1_id = b.id
-            left join breeds bb on a.breed2_id = bb.id
-            left join colors c on a.color1_id = c.id
-            left join colors cc on a.color2_id = cc.id
-            left join outcome_subtypes o on a.outcome_subtype_id = o.id
-            left join outcome_types ot on a.outcome_type_id = ot.id
-        where animal_id = {}
-'''
-sql2 = '''
-        select animal_type,
-            name,
-            date_of_birth,
-            outcome_date,
-            b.breed as breed1,
-            bb.breed as breed2,
-            c.color as color1,
-            cc.color as color2,
-            o.outcome_subtype,
-            ot.outcome_type
-        from 
-        (select * from animals_OPT where animal_id = {}) a
-            left join breeds b on a.breed1_id = b.id
-            left join breeds bb on a.breed2_id = bb.id
-            left join colors c on a.color1_id = c.id
-            left join colors cc on a.color2_id = cc.id
-            left join outcome_subtypes o on a.outcome_subtype_id = o.id
-            left join outcome_types ot on a.outcome_type_id = ot.id
-'''
-sql3 = '''
-        with subquery as (select * from animals_OPT where animal_id = {})
-        select animal_type, name, date_of_birth, outcome_date,
-            b.breed as breed1, bb.breed as breed2,
-            c.color as color1, cc.color as color2,
-            o.outcome_subtype, ot.outcome_type
-        from subquery a
-            left join breeds b on a.breed1_id = b.id
-            left join breeds bb on a.breed2_id = bb.id
-            left join colors c on a.color1_id = c.id
-            left join colors cc on a.color2_id = cc.id
-            left join outcome_subtypes o on a.outcome_subtype_id = o.id
-            left join outcome_types ot on a.outcome_type_id = ot.id
-'''
 SQL = '''
-    select at.animal_type animal_type, name, date_of_birth, outcome_date,
---        b.breed as breed1, bb.breed as breed2,
-        --c.color as color1, cc.color as color2,
-        o.outcome_subtype, ot.outcome_type
+    select at.animal_type animal_type,
+        name,
+        date_of_birth,
+        outcome_date,
+        o.outcome_subtype,
+        ot.outcome_type
     from animals_OPT a
---        left join breeds b on a.breed1_id = b.id
---        left join breeds bb on a.breed2_id = bb.id
---        left join colors c on a.color1_id = c.id
---        left join colors cc on a.color2_id = cc.id
         left join outcome_subtypes o on a.outcome_subtype_id = o.id
         left join outcome_types ot on a.outcome_type_id = ot.id
         left join animal_types at on a.animal_type_id = at.id
@@ -136,42 +85,5 @@ def shows_colors():
     return render_template('colors.html', colors=make_results('Color', data=results))
 
 
-@app.route('/search/', methods=['GET', 'POST'])
-def search():
-    return render_template('search.html')
-
-
 if __name__ == '__main__':
     app.run()
-
-    # DEBUG and PROFILE -----
-    # import time
-    # uid = 3
-
-    # results = run_sql('''
-    # select *
-    # from colors --animals_OPT
-    # --limit 10
-    # ''')
-    # print(results)
-
-    # 0.000778s
-    # t0 = time.perf_counter()
-    # results = run_sql(sql.format(uid))
-    # elapsed = time.perf_counter() - t0
-    # print(results)
-    # print('SQL:\t[%0.8fs]' % elapsed)
-
-    # 0.000807s
-    # t0 = time.perf_counter()
-    # results = run_sql(sql2.format(uid))
-    # elapsed = time.perf_counter() - t0
-    # # print(results)
-    # print('SQL2:\t[%0.8fs]' % elapsed)
-
-    # 0.000819s
-    # t0 = time.perf_counter()
-    # results = run_sql(sql3.format(uid))
-    # elapsed = time.perf_counter() - t0
-    # # print(results)
-    # print('SQL3:\t[%0.8fs]' % elapsed)

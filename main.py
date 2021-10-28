@@ -146,36 +146,6 @@ insert into animals_breeds (animal_id, breed_id)
     order by animal_id    
 '''
 
-sql2 = '''
-insert into animals (animal_type, age_upon_outcome) values
-('Кошка', 2)
-'''
-
-sql3 = '''
-update animals
-set animal_type = 'Кошка' where animal_type = 'Кот'
-'''
-
-sql4 = '''
-alter table animals
-add column name2 nvarchar(20)
-'''
-
-sql5 = '''
-select distinct substr(age_upon_outcome, instr(age_upon_outcome, ' ')) as age
-from animals
-order by length(age)
-limit 10
-'''
-
-sql6 = '''
-select color1, color2 , length(color1)+length(color2)
-from animals
-where color2 is not null
-order by 3 desc
-limit 10
-'''
-
 # shows max length of string fields
 sql7 = '''
 with 
@@ -376,19 +346,14 @@ def create_all():
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    # create_all()  # creates all tables and transfers all data
+    # create_all()  # creates all tables and transfers all data; uncomment if you want to recreate all tables
 
-    # run_plain_sql('drop table if exists animals_colors')
-    # run_plain_sql(create_table_animals_colors)
-    # run_plain_sql(fill_in_animals_colors)
-
-    # run_plain_sql('drop table if exists animals_breeds')
-    # run_plain_sql(create_table_animals_breeds)
-    # run_plain_sql(fill_in_animals_breeds)
-
-    print(run_sql('select count(*) animals from animals'))
-    print(run_sql('select count(*) animals_OPT from animals_OPT'))
+    # some views
+    print(run_sql('select count(*) "animals lines" from animals'))
+    print(run_sql('select count(*) "animals_OPT lines" from animals_OPT'))
+    print('Table Animals (original)')
     print(run_sql('select * from animals limit 12'))
+    print('Table Animals_OPT (optimized)')
     print(run_sql('select * from animals_OPT limit 12'))
     print(run_sql('select * from animals_colors where animal_id = 10 limit 12'))
     print(run_sql('select * from animals_colors limit 5'))
