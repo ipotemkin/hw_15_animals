@@ -23,9 +23,9 @@ create table animals_OPT (
     foreign key (outcome_subtype_id) references outcome_subtypes(id),
     foreign key (outcome_type_id) references outcome_types(id),        
     foreign key (breed1_id) references breeds(id),        
-    foreign key (breed2_id) references breeds(id),        
-    foreign key (color1_id) references colors(id),        
-    foreign key (color2_id) references colors(id)        
+    foreign key (breed2_id) references breeds(id) --,        
+--    foreign key (color1_id) references colors(id),        
+--    foreign key (color2_id) references colors(id)        
 )
 '''
 
@@ -96,6 +96,30 @@ insert into animal_types (animal_type)
     from animals
     where animal_type is not null
     order by 1
+'''
+
+create_table_animals_colors = '''
+create table animals_colors (
+    id integer primary key autoincrement,
+    animal_id int,
+    color_id int,
+    foreign key (color_id) references colors(id),
+    foreign key (animal_id) references animals_OPT(animal_id)
+)
+'''
+
+fill_in_animals_colors = '''
+insert into animals_colors (animal_id, color_id)
+    select animal_id,
+        color1_id color_id
+    from animals_OPT
+    where color_id is not null
+    union all
+    select animal_id,
+        color2_id color_id
+    from animals_OPT
+    where color_id is not null
+    order by animal_id    
 '''
 
 sql2 = '''
@@ -304,6 +328,11 @@ def create_all():
     run_plain_sql('drop table if exists animals_OPT')
     run_plain_sql(create_table_animals)
     run_plain_sql(transfer_data)
+    #
+    run_plain_sql('drop table if exists animals_colors')
+    run_plain_sql(create_table_animals_colors)
+    run_plain_sql(fill_in_animals_colors)
+    #
     run_plain_sql('alter table animals_OPT drop column outcome_subtype')
     run_plain_sql('alter table animals_OPT drop column outcome_type')
     run_plain_sql('alter table animals_OPT drop column color1')
@@ -317,11 +346,30 @@ def create_all():
 if __name__ == '__main__':
     create_all()  # creates all tables and transfers all data
 
+    # run_plain_sql('drop table if exists animals_colors')
+    # run_plain_sql(create_table_animals_colors)
+    # run_plain_sql(fill_in_animals_colors)
+
     print(run_sql('select count(*) animals from animals'))
     print(run_sql('select count(*) animals_OPT from animals_OPT'))
     print(run_sql('select * from animals limit 12'))
     print(run_sql('select * from animals_OPT limit 12'))
-    # print(run_sql('select * from animal_types'))
+    print(run_sql('select * from animals_colors where animal_id = 10 limit 12'))
+    print(run_sql('select * from animals_colors limit 12'))
+    print(run_sql('''
+    select 
+        --a.animal_id
+        --, name
+        --, color1_id
+        --, color2_id
+        -- ac.color_id
+        color
+        from animals_OPT a
+            left join animals_colors ac using (animal_id)
+            left join colors c on ac.color_id = c.id
+        where animal_id = 2      
+        limit 20
+    '''))
 
     # tests -------------
     assert run_plain_sql('select count(*) from animals')[0][0] \

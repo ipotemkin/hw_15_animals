@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, render_template
 from errors import NotFoundError, BadRequestError, ValidationError
-from utils import run_plain_sql, make_results
+from utils import run_plain_sql, make_results, get_colors_by_animal_id
 
 app = Flask(__name__)
 
@@ -57,7 +57,7 @@ sql3 = '''
 SQL = '''
     select at.animal_type animal_type, name, date_of_birth, outcome_date,
         b.breed as breed1, bb.breed as breed2,
-        c.color as color1, cc.color as color2,
+        --c.color as color1, cc.color as color2,
         o.outcome_subtype, ot.outcome_type
     from animals_OPT a
         left join breeds b on a.breed1_id = b.id
@@ -96,18 +96,20 @@ def index():
 def shows_card_by_id(uid: int):
     if not (results := run_plain_sql(SQL.format(uid))):
         raise NotFoundError
-    return render_template('animal_card.html',
-                           card=make_results('Animal type', 'Name', 'Date of birth', 'Outcome date', 'Breed 1',
-                                             'Breed 2', 'Color 1', 'Color 2', 'Outcome subtype', 'Outcome type',
-                                             data=results)[0])
+    results_with_names = make_results('Animal type', 'Name', 'Date of birth', 'Outcome date', 'Breed 1', 'Breed 2',
+                                'Outcome subtype', 'Outcome type', data=results)
+    results_with_names[0]['Colors'] = get_colors_by_animal_id(uid)
+    return render_template('animal_card.html', card=results_with_names[0])
 
 
 @app.route('/<int:uid>')
 def shows_by_id(uid: int):
     if not (results := run_plain_sql(SQL.format(uid))):
         raise NotFoundError
-    return jsonify(make_results('Animal type', 'Name', 'Date of birth', 'Outcome date', 'Breed 1', 'Breed 2',
-                                'Color 1', 'Color 2', 'Outcome subtype', 'Outcome type', data=results))
+    results_with_names = make_results('Animal type', 'Name', 'Date of birth', 'Outcome date', 'Breed 1', 'Breed 2',
+                                'Outcome subtype', 'Outcome type', data=results)
+    results_with_names[0]['Colors'] = get_colors_by_animal_id(uid)
+    return jsonify(results_with_names[0])
 
 
 @app.route('/breeds/')

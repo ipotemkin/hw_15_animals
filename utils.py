@@ -28,3 +28,16 @@ def make_results(*fields: str, data: list) -> list:
             results_line[field] = line[i]
         results.append(results_line)
     return results
+
+
+def get_colors_by_animal_id(uid: int) -> str:
+    sql_colors_by_animal_id = '''
+        select color
+        from animals_OPT a
+            left join animals_colors ac using (animal_id)
+            left join colors c on ac.color_id = c.id
+        where animal_id = {} and color is not null     
+    '''
+    result = run_plain_sql(sql_colors_by_animal_id.format(uid))
+    colors_lst = [color[0] for color in result]
+    return ', '.join(colors_lst)
