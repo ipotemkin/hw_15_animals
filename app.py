@@ -55,7 +55,7 @@ sql3 = '''
             left join outcome_types ot on a.outcome_type_id = ot.id
 '''
 SQL = '''
-    select animal_type, name, date_of_birth, outcome_date,
+    select at.animal_type animal_type, name, date_of_birth, outcome_date,
         b.breed as breed1, bb.breed as breed2,
         c.color as color1, cc.color as color2,
         o.outcome_subtype, ot.outcome_type
@@ -66,6 +66,7 @@ SQL = '''
         left join colors cc on a.color2_id = cc.id
         left join outcome_subtypes o on a.outcome_subtype_id = o.id
         left join outcome_types ot on a.outcome_type_id = ot.id
+        left join animal_types at on a.animal_type_id = at.id
     where animal_id = {}
     '''
 
