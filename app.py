@@ -26,6 +26,7 @@ def index():
     return render_template('index.html')
 
 
+# shows an animal's card in the browser
 @app.route('/card/<int:uid>')
 def shows_card_by_id(uid: int):
     return render_template('animal_card.html', card=get_full_record(uid))
