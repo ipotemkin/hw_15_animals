@@ -14,3 +14,10 @@
     /*font-family: Arial;*/
     text-align: left;
 }
+.hoverable:hover {
+    color: blue;
+    font-weight: bold;
+}
+/*.container:nth-child(2) {
+    color: red;
+}*/
