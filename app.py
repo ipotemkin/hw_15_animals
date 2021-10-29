@@ -32,6 +32,7 @@ def shows_card_by_id(uid: int):
     return render_template('animal_card.html', card=get_full_record(uid))
 
 
+# returns an animal record in JSON by the given uid
 @app.route('/<int:uid>')
 def shows_by_id(uid: int):
     return jsonify(get_full_record(uid))

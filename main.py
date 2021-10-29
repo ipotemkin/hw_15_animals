@@ -367,45 +367,36 @@ if __name__ == '__main__':
     # '''))
 
     print(run_sql('''
-    with breeds_lst as (
-    select animal_id, 
-        group_concat(b.breed) breed_lst
-    from animals_breeds ab
-        left join breeds b on ab.breed_id = b.id
-    group by 1
-    --order by 1
-    ),
-    colors_lst as (
-    select animal_id,
-        group_concat(c.color) color_lst
-    from animals_colors ac
-        left join colors c on ac.color_id = c.id
-    group by 1
-    )
-    select a.animal_id, name,
-        color_lst,
-        breed_lst
-    from animals_OPT a
-        left join colors_lst using (animal_id)
-        left join breeds_lst using (animal_id)
-    where animal_id = 204
-    limit 5
-    '''))
-    print(run_sql('''
-    select *
-    from animals
-    limit 5
-    '''))
-    print(run_sql('''
-    select *
-    from animals_OPT
-    limit 5
-    '''))
-    print(run_sql('''
-    select *
-    from animals_breeds
-    limit 5
-    '''))
+        with breeds_lst as (
+            select animal_id, 
+                group_concat(b.breed, '/') breed_lst
+            from animals_breeds ab
+                left join breeds b on ab.breed_id = b.id
+            group by 1
+            ),
+        colors_lst as (
+            select animal_id,
+                group_concat(c.color, '/') color_lst
+            from animals_colors ac
+                left join colors c on ac.color_id = c.id
+            group by 1
+            )
+        select at.animal_type animal_type,
+            name,
+            date_of_birth,
+            outcome_date,
+            o.outcome_subtype,
+            ot.outcome_type,
+            color_lst,
+            breed_lst
+        from animals_OPT a
+            left join outcome_subtypes o on a.outcome_subtype_id = o.id
+            left join outcome_types ot on a.outcome_type_id = ot.id
+            left join animal_types at on a.animal_type_id = at.id
+            left join colors_lst using (animal_id)
+            left join breeds_lst using (animal_id)
+        limit 5
+        '''))
 
     # tests -------------
     assert run_plain_sql('select count(*) from animals')[0][0] \

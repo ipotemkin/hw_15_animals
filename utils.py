@@ -30,50 +30,39 @@ def make_results(*fields: str, data: list) -> list:
     return results
 
 
-def get_colors_by_animal_id(uid: int) -> str:
-    sql_colors_by_animal_id = '''
-        select color
-        from animals_OPT a
-            left join animals_colors ac using (animal_id)
-            left join colors c on ac.color_id = c.id
-        where animal_id = {} and color is not null     
-    '''
-    result = run_plain_sql(sql_colors_by_animal_id.format(uid))
-    colors_lst = [color[0] for color in result]
-    return '/'.join(colors_lst)
-
-
-def get_breeds_by_animal_id(uid: int) -> str:
-    sql_breeds_by_animal_id = '''
-        select breed
-        from animals_OPT a
-            left join animals_breeds ac using (animal_id)
-            left join breeds b on ac.breed_id = b.id
-        where animal_id = {} and breed is not null     
-    '''
-    result = run_plain_sql(sql_breeds_by_animal_id.format(uid))
-    breeds_lst = [breed[0] for breed in result]
-    return '/'.join(breeds_lst)
-
-
 def get_full_record(uid: int) -> dict:
     sql = '''
+        with breeds_lst as (
+            select animal_id, 
+                group_concat(b.breed, '/') breed_lst
+            from animals_breeds ab
+                left join breeds b on ab.breed_id = b.id
+            group by 1
+            ),
+        colors_lst as (
+            select animal_id,
+                group_concat(c.color, '/') color_lst
+            from animals_colors ac
+                left join colors c on ac.color_id = c.id
+            group by 1
+            )
         select at.animal_type animal_type,
             name,
             date_of_birth,
             outcome_date,
             o.outcome_subtype,
-            ot.outcome_type
+            ot.outcome_type,
+            color_lst,
+            breed_lst
         from animals_OPT a
             left join outcome_subtypes o on a.outcome_subtype_id = o.id
             left join outcome_types ot on a.outcome_type_id = ot.id
             left join animal_types at on a.animal_type_id = at.id
+            left join colors_lst using (animal_id)
+            left join breeds_lst using (animal_id)
         where animal_id = {}
         '''
     if not (results := run_plain_sql(sql.format(uid))):
         raise NotFoundError
-    results_with_names = make_results('Animal type', 'Name', 'Date of birth', 'Outcome date', 'Outcome subtype',
-                                      'Outcome type', data=results)
-    results_with_names[0]['Color'] = get_colors_by_animal_id(uid)
-    results_with_names[0]['Breed'] = get_breeds_by_animal_id(uid)
-    return results_with_names[0]
+    return make_results('Animal type', 'Name', 'Date of birth', 'Outcome date', 'Outcome subtype', 'Outcome type',
+                        'Color', 'Breed', data=results)[0]
