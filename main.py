@@ -349,20 +349,61 @@ if __name__ == '__main__':
     # create_all()  # creates all tables and transfers all data; uncomment if you want to recreate all tables
 
     # some views
-    print(run_sql('select count(*) "animals lines" from animals'))
-    print(run_sql('select count(*) "animals_OPT lines" from animals_OPT'))
-    print('Table Animals (original)')
-    print(run_sql('select * from animals limit 12'))
-    print('Table Animals_OPT (optimized)')
-    print(run_sql('select * from animals_OPT limit 12'))
-    print(run_sql('select * from animals_colors where animal_id = 10 limit 12'))
-    print(run_sql('select * from animals_colors limit 5'))
-    print(run_sql('select * from animals_breeds limit 5'))
+    # print(run_sql('select count(*) "animals lines" from animals'))
+    # print(run_sql('select count(*) "animals_OPT lines" from animals_OPT'))
+    # print('Table Animals (original)')
+    # print(run_sql('select * from animals limit 12'))
+    # print('Table Animals_OPT (optimized)')
+    # print(run_sql('select * from animals_OPT limit 12'))
+    # print(run_sql('select * from animals_colors where animal_id = 10 limit 12'))
+    # print(run_sql('select * from animals_colors limit 5'))
+    # print(run_sql('select * from animals_breeds limit 5'))
+    # print(run_sql('''
+    # select animal_id, count(animal_id)
+    # from animals_breeds
+    # group by 1
+    # having count(animal_id) > 1
+    # limit 5
+    # '''))
+
     print(run_sql('''
-    select animal_id, count(animal_id) 
-    from animals_breeds
+    with breeds_lst as (
+    select animal_id, 
+        group_concat(b.breed) breed_lst
+    from animals_breeds ab
+        left join breeds b on ab.breed_id = b.id
     group by 1
-    having count(animal_id) > 1
+    --order by 1
+    ),
+    colors_lst as (
+    select animal_id,
+        group_concat(c.color) color_lst
+    from animals_colors ac
+        left join colors c on ac.color_id = c.id
+    group by 1
+    )
+    select a.animal_id, name,
+        color_lst,
+        breed_lst
+    from animals_OPT a
+        left join colors_lst using (animal_id)
+        left join breeds_lst using (animal_id)
+    where animal_id = 204
+    limit 5
+    '''))
+    print(run_sql('''
+    select *
+    from animals
+    limit 5
+    '''))
+    print(run_sql('''
+    select *
+    from animals_OPT
+    limit 5
+    '''))
+    print(run_sql('''
+    select *
+    from animals_breeds
     limit 5
     '''))
 
